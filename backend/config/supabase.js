@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import ws from 'ws';
+
+// Fix for Node 20 without native WebSocket
+global.WebSocket = ws;
 
 dotenv.config();
 
