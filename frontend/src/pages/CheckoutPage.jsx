@@ -29,7 +29,7 @@ const CheckoutPage = () => {
         setTimeout(() => {
           alert('Order Placed Successfully via Cash on Delivery!');
           dispatch(clearCart());
-          navigate('/');
+          navigate('/orders');
         }, 1500);
       } else {
         // Placeholder for Razorpay Integration logic

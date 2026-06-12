@@ -16,7 +16,7 @@ const Navbar = () => {
 
       <div className="hidden md:flex items-center gap-10 text-ayurveda-green font-medium tracking-wide">
         <Link to="/" className="hover:text-gold transition-colors">Home</Link>
-        <Link to="/products" className="hover:text-gold transition-colors">Shop All</Link>
+        <Link to="/products" className="hover:text-gold transition-colors">Products</Link>
         <Link to="/about" className="hover:text-gold transition-colors">Our Story</Link>
         <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
       </div>
@@ -25,7 +25,7 @@ const Navbar = () => {
         <button className="hidden md:block text-ayurveda-green hover:text-gold transition-colors">
           <Search size={22} />
         </button>
-        <Link to="/login" className="text-ayurveda-green hover:text-gold transition-colors">
+        <Link to="/profile" className="text-ayurveda-green hover:text-gold transition-colors">
           <User size={22} />
         </Link>
         <Link to="/cart" className="relative text-ayurveda-green hover:text-gold transition-colors">

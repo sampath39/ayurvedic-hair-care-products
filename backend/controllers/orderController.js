@@ -81,7 +81,7 @@ export const getUserOrders = async (req, res) => {
   try {
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('*')
+      .select('*, order_items(*, products(name, images))')
       .eq('user_id', req.user.id);
 
     if (error) throw error;
@@ -123,6 +123,34 @@ export const updateOrderStatus = async (req, res) => {
 
     if (error) throw error;
     res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get dashboard analytics
+// @route   GET /api/orders/analytics
+// @access  Private/Admin
+export const getAnalytics = async (req, res) => {
+  try {
+    const { data: orders, error: ordersError } = await supabase.from('orders').select('total_amount');
+    if (ordersError) throw ordersError;
+    
+    const totalSales = orders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+    const totalOrders = orders.length;
+    
+    const { count: customersCount, error: custError } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+    if (custError) throw custError;
+    
+    const { count: productsCount, error: prodError } = await supabase.from('products').select('*', { count: 'exact', head: true });
+    if (prodError) throw prodError;
+
+    res.json({
+      totalSales,
+      totalOrders,
+      customers: customersCount || 0,
+      products: productsCount || 0
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

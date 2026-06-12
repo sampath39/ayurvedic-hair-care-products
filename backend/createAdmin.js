@@ -1,10 +1,22 @@
 import { supabase } from './config/supabase.js';
 
 async function createAdmin() {
-  console.log("Creating admin user...");
+  console.log("Cleaning up old admin...");
+  
+  // First, find the user
+  const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+  if (!listError) {
+    const oldAdmin = users.users.find(u => u.email === 'admin@ayuroots.com');
+    if (oldAdmin) {
+      await supabase.auth.admin.deleteUser(oldAdmin.id);
+      console.log("Deleted old admin user.");
+    }
+  }
+
+  console.log("Creating new admin user...");
   const { data, error } = await supabase.auth.admin.createUser({
     email: 'admin@ayuroots.com',
-    password: 'AdminPassword123!',
+    password: 'admin123',
     email_confirm: true,
     user_metadata: { full_name: 'Super Admin' }
   });

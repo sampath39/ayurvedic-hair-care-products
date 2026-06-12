@@ -18,3 +18,16 @@ export const createOrUpdateProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('*');
+
+    if (error) throw error;
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

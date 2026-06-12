@@ -9,6 +9,11 @@ const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // New Signup Fields
+  const [fullName, setFullName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [address, setAddress] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -26,15 +31,51 @@ const LoginPage = () => {
           password,
         });
         if (error) throw error;
-        dispatch(setUserSuccess(data.user));
-        navigate('/');
+
+        // Fetch profile to get role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        dispatch(setUserSuccess({ ...data.user, profile, access_token: data.session.access_token }));
+
+        if (profile && profile.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/products');
+        }
       } else {
+        // Collect extra fields via metadata
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+              mobile: mobile,
+              address: address
+            }
+          }
         });
         if (error) throw error;
-        alert('Signup successful! Please check your email to verify.');
+
+        // Force creation of profile row in backend so foreign keys (orders) work
+        if (data.user) {
+           await fetch('http://localhost:5000/api/users/profile', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+               id: data.user.id,
+               full_name: fullName,
+               mobile: mobile
+             })
+           });
+        }
+        
+        alert('Signup successful! You can now log in.');
+        setIsLogin(true); // Switch to login view
       }
     } catch (err) {
       setError(err.message);
@@ -44,10 +85,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
+    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden pt-20 pb-10">
       
-      {/* Immersive Deep Forest Background */}
-      <div className="absolute inset-0 z-0">
+      {/* Deep Forest Background */}
+      <div className="absolute inset-0 z-0 fixed">
         <motion.img 
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -60,121 +101,85 @@ const LoginPage = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60"></div>
       </div>
 
-      {/* Floating Leaves / Magical Dust Animation */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ 
-              opacity: 0, 
-              y: -50, 
-              x: Math.random() * window.innerWidth 
-            }}
-            animate={{ 
-              opacity: [0, 0.5, 0], 
-              y: window.innerHeight + 50, 
-              x: Math.random() * window.innerWidth 
-            }}
-            transition={{ 
-              duration: 10 + Math.random() * 10, 
-              repeat: Infinity, 
-              delay: Math.random() * 5 
-            }}
-            className="absolute w-2 h-2 rounded-full bg-gold/40 blur-[1px]"
-            style={{ 
-              top: '-5%', 
-              left: `${Math.random() * 100}%` 
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Login Box */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.5, type: "spring", bounce: 0.4 }}
-        className="w-full max-w-md p-10 relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-3xl"
+        transition={{ duration: 0.8, delay: 0.2, type: "spring", bounce: 0.4 }}
+        className="w-full max-w-md p-8 relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-3xl"
       >
-        <div className="text-center mb-10">
-          <motion.h2 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="text-4xl font-serif text-white mb-2"
-          >
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-serif text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join AyuRoots'}
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="text-cream opacity-80 text-sm font-light"
-          >
+          </h2>
+          <p className="text-cream opacity-80 text-sm font-light">
             {isLogin ? 'Enter the forest to access your account.' : 'Begin your natural hair journey with us.'}
-          </motion.p>
+          </p>
         </div>
 
-        {error && <div className="bg-red-500/20 border border-red-500/50 text-white p-3 rounded-lg mb-6 text-sm backdrop-blur-sm">{error}</div>}
+        {error && <div className="bg-red-500/20 border border-red-500/50 text-white p-3 rounded-lg mb-6 text-sm">{error}</div>}
 
-        <form onSubmit={handleAuth} className="space-y-6">
-          <motion.div
-             initial={{ opacity: 0, x: -20 }}
-             animate={{ opacity: 1, x: 0 }}
-             transition={{ delay: 1.1 }}
-          >
-            <label className="block text-sm font-medium text-cream mb-2 ml-1">Email Address</label>
+        <form onSubmit={handleAuth} className="space-y-4">
+          
+          {!isLogin && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-cream mb-1 ml-1">Full Name</label>
+                <input 
+                  type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-cream mb-1 ml-1">Mobile Number</label>
+                <input 
+                  type="tel" required value={mobile} onChange={(e) => setMobile(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
+                  placeholder="+91 9876543210"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-cream mb-1 ml-1">Full Address</label>
+                <textarea 
+                  required rows="2" value={address} onChange={(e) => setAddress(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
+                  placeholder="Street, City, State, Zip"
+                />
+              </div>
+            </>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-cream mb-1 ml-1">Email Address</label>
             <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold focus:bg-white/20 transition-all"
+              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
               placeholder="you@example.com"
             />
-          </motion.div>
-          <motion.div
-             initial={{ opacity: 0, x: -20 }}
-             animate={{ opacity: 1, x: 0 }}
-             transition={{ delay: 1.2 }}
-          >
-            <label className="block text-sm font-medium text-cream mb-2 ml-1">Password</label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-cream mb-1 ml-1">Password</label>
             <input 
-              type="password" 
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold focus:bg-white/20 transition-all"
+              type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
               placeholder="••••••••"
             />
-          </motion.div>
+          </div>
 
-          <motion.button 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4 }}
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-gold hover:bg-cream text-ayurveda-green hover:text-earthy-brown font-bold text-lg py-4 rounded-full shadow-lg transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+          <button 
+            type="submit" disabled={loading}
+            className="w-full bg-gold hover:bg-cream text-ayurveda-green hover:text-earthy-brown font-bold text-lg py-3.5 rounded-full shadow-lg transition-all duration-300 disabled:opacity-70 mt-4"
           >
             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
-          </motion.button>
+          </button>
         </form>
 
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.6 }}
-          className="mt-8 text-center text-sm text-cream"
-        >
+        <div className="mt-6 text-center text-sm text-cream">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
-            onClick={() => setIsLogin(!isLogin)} 
-            className="text-gold font-bold hover:text-white transition-colors underline underline-offset-4"
-          >
+          <button onClick={() => setIsLogin(!isLogin)} className="text-gold font-bold hover:text-white transition-colors underline underline-offset-4">
             {isLogin ? 'Sign Up' : 'Sign In'}
           </button>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
