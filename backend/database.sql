@@ -89,3 +89,60 @@ CREATE POLICY "Products are viewable by everyone" ON public.products FOR SELECT 
 
 -- Orders: Users can read their own orders. Admins can read all.
 CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
+
+-- 8. Payments Table
+CREATE TABLE public.payments (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    order_id uuid REFERENCES public.orders(id) ON DELETE CASCADE,
+    payment_gateway_id text,
+    signature text,
+    amount numeric NOT NULL,
+    status text DEFAULT 'Pending'::text CHECK (status IN ('Pending', 'Success', 'Failed', 'Refunded')),
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9. OTP Verifications Table
+CREATE TABLE public.otp_verifications (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    mobile text NOT NULL,
+    otp_hash text NOT NULL,
+    status text DEFAULT 'Pending'::text CHECK (status IN ('Pending', 'Verified', 'Expired')),
+    expires_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10. Delivery Tracking Table
+CREATE TABLE public.delivery_tracking (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    order_id uuid REFERENCES public.orders(id) ON DELETE CASCADE,
+    delivery_partner_name text,
+    status text DEFAULT 'Assigned'::text CHECK (status IN ('Assigned', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered', 'Failed Attempt')),
+    location_data jsonb,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 11. Notifications Table
+CREATE TABLE public.notifications (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    message text NOT NULL,
+    type text NOT NULL CHECK (type IN ('order', 'payment', 'alert', 'delivery')),
+    is_read boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for new tables
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_tracking ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Additional Policies
+CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.orders WHERE orders.id = payments.order_id AND orders.user_id = auth.uid())
+);
+CREATE POLICY "Users can view own delivery tracking" ON public.delivery_tracking FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.orders WHERE orders.id = delivery_tracking.order_id AND orders.user_id = auth.uid())
+);
+CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);

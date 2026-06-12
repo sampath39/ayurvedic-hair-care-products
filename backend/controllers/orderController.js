@@ -133,11 +133,39 @@ export const updateOrderStatus = async (req, res) => {
 // @access  Private/Admin
 export const getAnalytics = async (req, res) => {
   try {
-    const { data: orders, error: ordersError } = await supabase.from('orders').select('total_amount');
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('total_amount, order_status, payment_method, created_at, id');
+      
     if (ordersError) throw ordersError;
     
+    // Aggregate data
     const totalSales = orders.reduce((sum, order) => sum + Number(order.total_amount), 0);
     const totalOrders = orders.length;
+    
+    let todayOrders = 0;
+    let pendingOrders = 0;
+    let deliveredOrders = 0;
+    let cancelledOrders = 0;
+    let activeDeliveries = 0;
+    let codRevenue = 0;
+    let upiRevenue = 0;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.created_at);
+      if (orderDate >= today) todayOrders++;
+      
+      if (order.order_status === 'Pending') pendingOrders++;
+      else if (order.order_status === 'Delivered') deliveredOrders++;
+      else if (order.order_status === 'Cancelled' || order.order_status === 'Rejected') cancelledOrders++;
+      else if (['Processing', 'Shipped', 'Out for Delivery'].includes(order.order_status)) activeDeliveries++;
+
+      if (order.payment_method === 'COD') codRevenue += Number(order.total_amount);
+      else upiRevenue += Number(order.total_amount);
+    });
     
     const { count: customersCount, error: custError } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
     if (custError) throw custError;
@@ -148,6 +176,13 @@ export const getAnalytics = async (req, res) => {
     res.json({
       totalSales,
       totalOrders,
+      todayOrders,
+      pendingOrders,
+      deliveredOrders,
+      cancelledOrders,
+      activeDeliveries,
+      codRevenue,
+      upiRevenue,
       customers: customersCount || 0,
       products: productsCount || 0
     });

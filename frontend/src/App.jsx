@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { supabase } from './config/supabase';
 import { setUserSuccess } from './store/slices/userSlice';
+import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
@@ -57,9 +59,11 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
+    <ThemeProvider>
+      <Router>
+        <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-gray-900 transition-colors duration-300">
+          <Toaster position="top-right" />
+          <Navbar />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -78,6 +82,7 @@ function App() {
         <Footer />
       </div>
     </Router>
+  </ThemeProvider>
   );
 }
 
