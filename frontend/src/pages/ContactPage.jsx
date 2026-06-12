@@ -19,7 +19,7 @@ const ContactPage = () => {
               </div>
               <div>
                 <h3 className="font-serif text-xl text-ayurveda-green mb-1">Email Us</h3>
-                <p className="text-earthy-brown opacity-80">support@ayuroots.com</p>
+                <p className="text-earthy-brown opacity-80">smapath777yt@gmail.com</p>
                 <p className="text-sm text-earthy-brown opacity-60 mt-1">We aim to respond within 24 hours.</p>
               </div>
             </div>
@@ -30,7 +30,7 @@ const ContactPage = () => {
               </div>
               <div>
                 <h3 className="font-serif text-xl text-ayurveda-green mb-1">Call Us</h3>
-                <p className="text-earthy-brown opacity-80">+91 98765 43210</p>
+                <p className="text-earthy-brown opacity-80">+91 6304258160</p>
                 <p className="text-sm text-earthy-brown opacity-60 mt-1">Mon-Fri, 9:00 AM - 6:00 PM IST</p>
               </div>
             </div>
@@ -42,9 +42,9 @@ const ContactPage = () => {
               <div>
                 <h3 className="font-serif text-xl text-ayurveda-green mb-1">Visit Us</h3>
                 <p className="text-earthy-brown opacity-80 leading-relaxed">
-                  123 Wellness Avenue,<br />
-                  Ayurveda Park, Bandra West,<br />
-                  Mumbai, Maharashtra 400050
+                  Sampath<br />
+                  Guntur, AP<br />
+                  India 522001
                 </p>
               </div>
             </div>

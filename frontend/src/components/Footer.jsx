@@ -10,9 +10,15 @@ const Footer = () => {
           <h2 className="text-3xl font-serif font-bold text-gold flex items-center gap-2 mb-4">
             <Leaf size={28} /> AyuRoots
           </h2>
-          <p className="text-sm opacity-80 leading-relaxed">
+          <p className="text-sm opacity-80 leading-relaxed mb-6">
             100% natural, chemical-free Ayurvedic hair care products formulated with ancient wisdom to bring out your true beauty.
           </p>
+          <div className="text-sm opacity-80 space-y-1">
+            <p className="font-bold text-gold">Sampath</p>
+            <p>Guntur, AP, India 522001</p>
+            <p>Phone: +91 6304258160</p>
+            <p>Email: smapath777yt@gmail.com</p>
+          </div>
         </div>
 
         {/* Quick Links */}
