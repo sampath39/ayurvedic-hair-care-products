@@ -1,9 +1,17 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Navigate, Link } from 'react-router-dom';
-import { MapPin, User, Mail, Phone } from 'lucide-react';
+import { MapPin, User, Mail, Phone, LogOut } from 'lucide-react';
+import { logoutUser } from '../store/slices/userSlice';
+import { supabase } from '../config/supabase';
 
 const ProfilePage = () => {
   const { currentUser } = useSelector(state => state.user);
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    dispatch(logoutUser());
+  };
 
   if (!currentUser) {
     return <Navigate to="/login" />;
@@ -66,13 +74,21 @@ const ProfilePage = () => {
                 <p className="text-lg font-medium text-ayurveda-green">{meta.address || 'Not provided'}</p>
               </div>
             </div>
-            <div className="pt-6 border-t border-herbal-green/10 mt-6">
+            <div className="pt-6 border-t border-herbal-green/10 mt-6 space-y-4">
               <Link 
                 to="/orders" 
                 className="w-full flex items-center justify-center gap-2 bg-ayurveda-green hover:bg-gold text-white font-bold py-3.5 rounded-xl transition-all duration-300 shadow-md"
               >
                 View Order History
               </Link>
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 bg-white border-2 border-red-500 hover:bg-red-50 text-red-600 font-bold py-3.5 rounded-xl transition-all duration-300 shadow-sm"
+              >
+                <LogOut size={20} />
+                Sign Out
+              </button>
             </div>
           </div>
           

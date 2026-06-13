@@ -19,15 +19,13 @@ const Navbar = () => {
         <Link to="/products" className="hover:text-gold transition-colors">Products</Link>
         <Link to="/about" className="hover:text-gold transition-colors">Our Story</Link>
         <Link to="/contact" className="hover:text-gold transition-colors">Contact</Link>
+        <Link to="/orders" className="hover:text-gold transition-colors">Orders</Link>
       </div>
 
       <div className="flex items-center gap-6">
         <button className="hidden md:block text-ayurveda-green hover:text-gold transition-colors">
           <Search size={22} />
         </button>
-        <Link to="/orders" className="hidden md:block text-ayurveda-green hover:text-gold transition-colors font-medium tracking-wide">
-          Orders
-        </Link>
         <Link to="/profile" className="text-ayurveda-green hover:text-gold transition-colors">
           <User size={22} />
         </Link>
