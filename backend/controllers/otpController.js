@@ -8,12 +8,13 @@ export const sendOtp = async (req, res) => {
     const expires_at = new Date(Date.now() + 10 * 60000); // 10 mins expiry
 
     // Send OTP via Fast2SMS
-    if (process.env.FAST2SMS_API_KEY) {
+    const apiKey = process.env.VITE_FASTSMS || process.env.FAST2SMS_API_KEY;
+    if (apiKey) {
       try {
         const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
           method: 'POST',
           headers: {
-            'authorization': process.env.FAST2SMS_API_KEY,
+            'authorization': apiKey,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -37,7 +38,7 @@ export const sendOtp = async (req, res) => {
         console.error("Failed to call Fast2SMS:", smsError);
       }
     } else {
-      console.warn(`[SMS WARNING] FAST2SMS_API_KEY is not set in .env! Cannot dispatch real SMS. OTP would be: ${otp}`);
+      console.warn(`[SMS WARNING] VITE_FASTSMS is not set in .env! Cannot dispatch real SMS. OTP would be: ${otp}`);
     }
 
     const { data, error } = await supabase

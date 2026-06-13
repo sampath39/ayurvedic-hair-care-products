@@ -160,6 +160,61 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateProduct = async (productId, updatedProduct) => {
+    const loadingToast = toast.loading('Updating Product...');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    try {
+      const payload = {
+        ...updatedProduct,
+        images: typeof updatedProduct.images === 'string' ? updatedProduct.images.split(',').map(url => url.trim()) : updatedProduct.images,
+        price: Number(updatedProduct.price),
+        stock: Number(updatedProduct.stock),
+        category_id: Number(updatedProduct.category_id)
+      };
+      const res = await fetch(`${API_URL}/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.access_token}` },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const savedProduct = await res.json();
+        setProducts(products.map(p => p.id === productId ? savedProduct : p));
+        toast.success('Product Updated', { id: loadingToast });
+      } else throw new Error('Failed');
+    } catch (err) {
+      toast.error('Error updating product', { id: loadingToast });
+    }
+  };
+
+  const handleSeedProducts = async () => {
+    const loadingToast = toast.loading('Seeding Database with Demo Products...');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    try {
+      // Import mockProducts dynamically to avoid circular dependencies if any
+      const { mockProducts } = await import('../pages/ProductsPage.jsx');
+      let successCount = 0;
+      for (const prod of mockProducts) {
+        const res = await fetch(`${API_URL}/api/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.access_token}` },
+          body: JSON.stringify({
+            name: prod.name,
+            description: prod.description,
+            price: prod.price,
+            stock: 100, // default stock
+            images: prod.images,
+            category_id: 1 // default category
+          })
+        });
+        if (res.ok) successCount++;
+      }
+      toast.success(`${successCount} Products Seeded!`, { id: loadingToast });
+      fetchData(); // reload
+    } catch (err) {
+      toast.error('Error seeding database', { id: loadingToast });
+    }
+  };
+
   if (!currentUser) return <Navigate to="/login" />;
 
   const renderContent = () => {
@@ -167,7 +222,7 @@ const AdminDashboard = () => {
       case 'dashboard': return <DashboardOverview analytics={analytics} isLoading={isLoading} />;
       case 'analytics': return <AnalyticsView orders={orders} isLoading={isLoading} />;
       case 'orders': return <OrdersView orders={orders} isLoading={isLoading} handleUpdateOrderStatus={handleUpdateOrderStatus} handleSendOtp={handleSendOtp} setSelectedOrder={setSelectedOrder} setShowDeliveryModal={setShowDeliveryModal} setShowOtpModal={setShowOtpModal} />;
-      case 'products': return <ProductsView products={products} isLoading={isLoading} handleAddProduct={handleAddProduct} handleDeleteProduct={handleDeleteProduct} handleUpdateProduct={() => {}} />;
+      case 'products': return <ProductsView products={products} isLoading={isLoading} handleAddProduct={handleAddProduct} handleDeleteProduct={handleDeleteProduct} handleUpdateProduct={handleUpdateProduct} handleSeedProducts={handleSeedProducts} />;
       case 'customers': return <CustomersView customers={customers} isLoading={isLoading} />;
       case 'payments':
       case 'delivery':

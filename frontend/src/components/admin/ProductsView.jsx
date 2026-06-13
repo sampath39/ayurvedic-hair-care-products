@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Package, Search, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Package, Search, Plus, Edit, Trash2, Database } from 'lucide-react';
 
-const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProduct, handleUpdateProduct }) => {
+const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProduct, handleUpdateProduct, handleSeedProducts }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '', description: '', price: '', stock: '', images: '', category_id: 1, is_available: true
   });
@@ -19,9 +20,28 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
 
   const onSubmit = (e) => {
     e.preventDefault();
-    handleAddProduct(newProduct);
+    if (editingProductId) {
+      handleUpdateProduct(editingProductId, newProduct);
+    } else {
+      handleAddProduct(newProduct);
+    }
     setShowAddForm(false);
+    setEditingProductId(null);
     setNewProduct({ name: '', description: '', price: '', stock: '', images: '', category_id: 1, is_available: true });
+  };
+
+  const startEdit = (prod) => {
+    setEditingProductId(prod.id);
+    setNewProduct({
+      name: prod.name,
+      description: prod.description,
+      price: prod.price,
+      stock: prod.stock,
+      images: prod.images ? prod.images.join(', ') : '',
+      category_id: prod.category_id || 1,
+      is_available: prod.is_available
+    });
+    setShowAddForm(true);
   };
 
   if (isLoading) {
@@ -44,7 +64,11 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
             />
           </div>
           <button 
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              setEditingProductId(null);
+              setNewProduct({ name: '', description: '', price: '', stock: '', images: '', category_id: 1, is_available: true });
+              setShowAddForm(!showAddForm);
+            }}
             className="flex items-center gap-2 bg-ayurveda-green hover:bg-gold text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors"
           >
             <Plus size={18} /> Add Product
@@ -54,7 +78,7 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
 
       {showAddForm && (
         <form onSubmit={onSubmit} className="mb-8 bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
-          <h3 className="font-bold text-gray-800 dark:text-white mb-4">Add New Product</h3>
+          <h3 className="font-bold text-gray-800 dark:text-white mb-4">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 mb-1">Product Name</label>
@@ -83,7 +107,10 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
               <input type="text" className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white" value={newProduct.images} onChange={e => setNewProduct({...newProduct, images: e.target.value})} />
             </div>
           </div>
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Save Product</button>
+          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+            {editingProductId ? 'Update Product' : 'Save Product'}
+          </button>
+          <button type="button" onClick={() => setShowAddForm(false)} className="ml-4 text-gray-500 hover:text-gray-700">Cancel</button>
         </form>
       )}
 
@@ -99,8 +126,21 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
             </tr>
           </thead>
           <tbody className="text-sm text-gray-600 dark:text-gray-300">
-            {filteredProducts.length === 0 ? (
-              <tr><td colSpan="5" className="py-8 text-center text-gray-400">No products found</td></tr>
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="py-16 text-center text-gray-400">
+                  <Package size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                  <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-4">No products found in database</p>
+                  <button 
+                    onClick={handleSeedProducts}
+                    className="inline-flex items-center gap-2 bg-gold hover:bg-yellow-500 text-ayurveda-green font-bold px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg"
+                  >
+                    <Database size={20} /> Load Demo Products
+                  </button>
+                </td>
+              </tr>
+            ) : filteredProducts.length === 0 ? (
+              <tr><td colSpan="5" className="py-8 text-center text-gray-400">No products match your search</td></tr>
             ) : (
               filteredProducts.map(prod => (
                 <tr key={prod.id} className="border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
@@ -128,7 +168,7 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
                   </td>
                   <td className="py-4 pr-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit size={16} /></button>
+                      <button onClick={() => startEdit(prod)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit size={16} /></button>
                       <button onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 size={16} /></button>
                     </div>
                   </td>
