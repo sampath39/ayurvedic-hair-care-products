@@ -16,7 +16,17 @@ const CartPage = () => {
   return (
     <div className="min-h-screen bg-cream pt-28 pb-20 px-4 md:px-12">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-serif text-ayurveda-green mb-8">Your Cart</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-serif text-ayurveda-green">Your Cart</h1>
+          {cartItems.length > 0 && (
+            <button 
+              onClick={() => dispatch(clearCart())} 
+              className="text-red-500 hover:text-red-700 font-medium flex items-center gap-2 px-4 py-2 bg-red-50 rounded-lg transition-colors"
+            >
+              <Trash2 size={18} /> Clear Cart
+            </button>
+          )}
+        </div>
         
         {cartItems.length === 0 ? (
           <div className="text-center py-20 bg-white/50 rounded-3xl border border-herbal-green/20">
