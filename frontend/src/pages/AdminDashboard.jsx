@@ -58,20 +58,21 @@ const AdminDashboard = () => {
     if (!currentUser || !currentUser.access_token) return;
     setIsLoading(true);
     try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       if (['dashboard', 'analytics'].includes(activeTab)) {
-        const res = await fetch('http://localhost:5000/api/orders/analytics', { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
+        const res = await fetch(`${API_URL}/api/orders/analytics`, { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
         if (res.ok) setAnalytics(await res.json());
       }
       if (['orders', 'dashboard', 'analytics'].includes(activeTab)) {
-        const res = await fetch('http://localhost:5000/api/orders', { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
+        const res = await fetch(`${API_URL}/api/orders`, { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
         if (res.ok) setOrders(await res.json());
       }
       if (activeTab === 'products') {
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch(`${API_URL}/api/products`);
         if (res.ok) setProducts(await res.json());
       }
       if (activeTab === 'customers') {
-        const res = await fetch('http://localhost:5000/api/users', { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
+        const res = await fetch(`${API_URL}/api/users`, { headers: { 'Authorization': `Bearer ${currentUser.access_token}` } });
         if (res.ok) setCustomers(await res.json());
       }
     } catch (err) {
@@ -84,7 +85,7 @@ const AdminDashboard = () => {
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     const loadingToast = toast.loading('Updating workflow...');
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.access_token}` },
         body: JSON.stringify({ order_status: newStatus })
@@ -100,8 +101,9 @@ const AdminDashboard = () => {
 
   const handleSendOtp = async (mobile) => {
     const loadingToast = toast.loading('Broadcasting OTP via SMS Network...');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
-      const res = await fetch('http://localhost:5000/api/otp/send', {
+      const res = await fetch(`${API_URL}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.access_token}` },
         body: JSON.stringify({ mobile })

@@ -6,6 +6,7 @@ import { clearCart } from '../store/slices/cartSlice';
 const CheckoutPage = () => {
   const cartItems = useSelector(state => state.cart.cartItems);
   const totalPrice = useSelector(state => state.cart.totalPrice);
+  const { currentUser } = useSelector(state => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -21,27 +22,46 @@ const CheckoutPage = () => {
 
   const placeOrder = async (e) => {
     e.preventDefault();
+    if (!currentUser) return alert('Please login to place an order');
     setLoading(true);
 
     try {
+      const orderPayload = {
+        orderItems: cartItems.map(item => ({ product_id: item.id, qty: item.quantity, price: item.price })),
+        shippingAddress,
+        paymentMethod,
+        itemsPrice: totalPrice,
+        taxPrice: 0,
+        shippingPrice: 0,
+        totalPrice
+      };
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentUser.access_token}`
+        },
+        body: JSON.stringify(orderPayload)
+      });
+      
+      if (!res.ok) throw new Error('Failed to place order');
+
       if (paymentMethod === 'COD') {
-        // Mocking API call
-        setTimeout(() => {
-          alert('Order Placed Successfully via Cash on Delivery!');
-          dispatch(clearCart());
-          navigate('/orders');
-        }, 1500);
+        alert('Order Placed Successfully via Cash on Delivery!');
+        dispatch(clearCart());
+        navigate('/orders');
       } else {
-        // Placeholder for Razorpay Integration logic
-        alert('Initiating Razorpay payment...');
+        alert('Initiating online payment gateway...');
         setTimeout(() => {
           alert('Payment Successful! Order Placed.');
           dispatch(clearCart());
-          navigate('/');
+          navigate('/orders');
         }, 2000);
       }
     } catch (error) {
-      alert('Error placing order');
+      alert('Error placing order: ' + error.message);
     } finally {
       setLoading(false);
     }

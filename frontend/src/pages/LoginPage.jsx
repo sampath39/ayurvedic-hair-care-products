@@ -42,7 +42,8 @@ const LoginPage = () => {
         // Fallback: If profile was never created during signup, create it now
         if (!profile) {
           try {
-            const res = await fetch('http://localhost:5000/api/users/profile', {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const res = await fetch(`${API_URL}/api/users/profile`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ id: data.user.id, full_name: 'Customer', mobile: '' })
@@ -77,7 +78,8 @@ const LoginPage = () => {
 
         // Force creation of profile row in backend so foreign keys (orders) work
         if (data.user) {
-           await fetch('http://localhost:5000/api/users/profile', {
+           const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+           await fetch(`${API_URL}/api/users/profile`, {
              method: 'POST',
              headers: { 'Content-Type': 'application/json' },
              body: JSON.stringify({

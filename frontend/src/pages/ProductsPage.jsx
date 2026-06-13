@@ -16,7 +16,8 @@ const ProductsPage = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    fetch(`${API_URL}/api/products`)
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) {
