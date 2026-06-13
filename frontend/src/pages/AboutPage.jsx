@@ -6,8 +6,8 @@ const AboutPage = () => {
         
         <div className="w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl mb-16">
           <img 
-            src="https://images.unsplash.com/photo-1542038520-21a1b181dbb3?q=80&w=1200&auto=format&fit=crop" 
-            alt="Ayurvedic herbs" 
+            src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1200&auto=format&fit=crop" 
+            alt="Ayurvedic herbs and nature" 
             className="w-full h-full object-cover"
           />
         </div>
