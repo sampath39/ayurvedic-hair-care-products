@@ -10,6 +10,7 @@ import DashboardOverview from '../components/admin/DashboardOverview';
 import AnalyticsView from '../components/admin/AnalyticsView';
 import OrdersView from '../components/admin/OrdersView';
 import ProductsView from '../components/admin/ProductsView';
+import CustomersView from '../components/admin/CustomersView';
 
 const AdminDashboard = () => {
   const { currentUser } = useSelector(state => state.user);
@@ -116,6 +117,49 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleAddProduct = async (newProduct) => {
+    const loadingToast = toast.loading('Adding Product...');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    try {
+      const payload = {
+        ...newProduct,
+        images: newProduct.images ? newProduct.images.split(',').map(url => url.trim()) : [],
+        price: Number(newProduct.price),
+        stock: Number(newProduct.stock),
+        category_id: Number(newProduct.category_id)
+      };
+      const res = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUser.access_token}` },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const addedProduct = await res.json();
+        setProducts([...products, addedProduct]);
+        toast.success('Product Added Successfully', { id: loadingToast });
+      } else throw new Error('Failed');
+    } catch (err) {
+      toast.error('Error adding product', { id: loadingToast });
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    const loadingToast = toast.loading('Deleting Product...');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    try {
+      const res = await fetch(`${API_URL}/api/products/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${currentUser.access_token}` }
+      });
+      if (res.ok) {
+        setProducts(products.filter(p => p.id !== productId));
+        toast.success('Product Deleted', { id: loadingToast });
+      } else throw new Error('Failed');
+    } catch (err) {
+      toast.error('Error deleting product', { id: loadingToast });
+    }
+  };
+
   if (!currentUser) return <Navigate to="/login" />;
 
   const renderContent = () => {
@@ -123,8 +167,8 @@ const AdminDashboard = () => {
       case 'dashboard': return <DashboardOverview analytics={analytics} isLoading={isLoading} />;
       case 'analytics': return <AnalyticsView orders={orders} isLoading={isLoading} />;
       case 'orders': return <OrdersView orders={orders} isLoading={isLoading} handleUpdateOrderStatus={handleUpdateOrderStatus} handleSendOtp={handleSendOtp} setSelectedOrder={setSelectedOrder} setShowDeliveryModal={setShowDeliveryModal} setShowOtpModal={setShowOtpModal} />;
-      case 'products': return <ProductsView products={products} isLoading={isLoading} handleAddProduct={() => {}} handleDeleteProduct={() => {}} handleUpdateProduct={() => {}} />;
-      case 'customers': 
+      case 'products': return <ProductsView products={products} isLoading={isLoading} handleAddProduct={handleAddProduct} handleDeleteProduct={handleDeleteProduct} handleUpdateProduct={() => {}} />;
+      case 'customers': return <CustomersView customers={customers} isLoading={isLoading} />;
       case 'payments':
       case 'delivery':
       case 'notifications':

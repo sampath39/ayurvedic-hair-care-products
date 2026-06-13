@@ -129,7 +129,7 @@ const ProductsView = ({ products, isLoading, handleAddProduct, handleDeleteProdu
                   <td className="py-4 pr-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center justify-end gap-2">
                       <button className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit size={16} /></button>
-                      <button className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 size={16} /></button>
+                      <button onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 size={16} /></button>
                     </div>
                   </td>
                 </tr>
