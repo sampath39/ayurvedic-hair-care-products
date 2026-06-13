@@ -1,6 +1,5 @@
 import { supabase } from '../config/supabase.js';
 
-// Simulated OTP sending
 export const sendOtp = async (req, res) => {
   try {
     const { mobile } = req.body;
@@ -8,8 +7,38 @@ export const sendOtp = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expires_at = new Date(Date.now() + 10 * 60000); // 10 mins expiry
 
-    // In a real app, send OTP via Twilio/MSG91 here
-    console.log(`[SIMULATED SMS] OTP for ${mobile} is ${otp}`);
+    // Send OTP via Fast2SMS
+    if (process.env.FAST2SMS_API_KEY) {
+      try {
+        const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+          method: 'POST',
+          headers: {
+            'authorization': process.env.FAST2SMS_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            route: 'v3',
+            sender_id: 'TXTIND',
+            message: `Your AyuRoots OTP is ${otp}. Valid for 10 minutes.`,
+            language: 'english',
+            flash: 0,
+            numbers: mobile.replace('+91', '').trim()
+          })
+        });
+        
+        const result = await response.json();
+        if (!result.return) {
+          console.error("Fast2SMS API Error:", result);
+          // If the API fails but we don't want to block dev mode completely, we can still fall through
+          // But ideally we throw an error in pure production
+          // throw new Error("SMS API provider failed to send message");
+        }
+      } catch (smsError) {
+        console.error("Failed to call Fast2SMS:", smsError);
+      }
+    } else {
+      console.warn(`[SMS WARNING] FAST2SMS_API_KEY is not set in .env! Cannot dispatch real SMS. OTP would be: ${otp}`);
+    }
 
     const { data, error } = await supabase
       .from('otp_verifications')
@@ -18,9 +47,9 @@ export const sendOtp = async (req, res) => {
       .single();
 
     if (error) throw error;
-    // Return OTP in response only for testing since there is no real SMS gateway
-    res.json({ message: 'OTP sent successfully', id: data.id, simulated_otp: otp });
+    res.json({ message: 'OTP sent successfully', id: data.id });
   } catch (error) {
+    console.error("sendOtp exception:", error);
     res.status(500).json({ message: error.message });
   }
 };

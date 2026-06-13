@@ -43,8 +43,7 @@ const LoginPage = () => {
       if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
       
       setOtpSent(true);
-      // For testing purposes, alert the simulated OTP
-      alert(`[SIMULATED SMS] Your AyuRoots verification code is: ${data.simulated_otp}`);
+      // Removed simulated OTP alert for production deployment
     } catch (err) {
       setError(err.message);
     } finally {
