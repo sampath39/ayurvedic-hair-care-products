@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 
 // Mock data with realistic Unsplash images for Ayurvedic products
@@ -14,6 +14,30 @@ export const mockProducts = [
 const ProductsPage = () => {
   const [products, setProducts] = useState(mockProducts);
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setProducts(data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch backend products", err));
+  }, []);
+
+  const getFilteredProducts = () => {
+    if (filter === 'all') return products;
+    return products.filter(p => {
+       const n = p.name.toLowerCase();
+       if (filter === 'oils') return n.includes('oil');
+       if (filter === 'shampoos') return n.includes('shampoo') || n.includes('cleanser');
+       if (filter === 'masks') return n.includes('mask') || n.includes('serum') || n.includes('mist') || n.includes('tonic');
+       return true;
+    });
+  };
+
+  const filtered = getFilteredProducts();
 
   return (
     <div className="bg-cream min-h-screen pt-32 pb-24">
@@ -36,9 +60,13 @@ const ProductsPage = () => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {products.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {filtered.length === 0 ? (
+             <div className="col-span-3 text-center py-12 text-earthy-brown text-xl">No products found in this category.</div>
+          ) : (
+            filtered.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
 
       </div>

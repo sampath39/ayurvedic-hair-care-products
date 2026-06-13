@@ -25,6 +25,9 @@ const Navbar = () => {
         <button className="hidden md:block text-ayurveda-green hover:text-gold transition-colors">
           <Search size={22} />
         </button>
+        <Link to="/orders" className="hidden md:block text-ayurveda-green hover:text-gold transition-colors font-medium tracking-wide">
+          Orders
+        </Link>
         <Link to="/profile" className="text-ayurveda-green hover:text-gold transition-colors">
           <User size={22} />
         </Link>
