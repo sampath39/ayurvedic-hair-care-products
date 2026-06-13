@@ -32,12 +32,26 @@ const LoginPage = () => {
         });
         if (error) throw error;
 
-        // Fetch profile to get role
-        const { data: profile } = await supabase
+        // Fetch profile to get role, use maybeSingle to prevent crashing if missing
+        let { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
+
+        // Fallback: If profile was never created during signup, create it now
+        if (!profile) {
+          try {
+            const res = await fetch('http://localhost:5000/api/users/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: data.user.id, full_name: 'Customer', mobile: '' })
+            });
+            if (res.ok) profile = await res.json();
+          } catch (e) {
+            console.error("Fallback profile creation failed", e);
+          }
+        }
 
         dispatch(setUserSuccess({ ...data.user, profile, access_token: data.session.access_token }));
 

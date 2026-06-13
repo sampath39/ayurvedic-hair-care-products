@@ -32,7 +32,7 @@ function App() {
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
             
           dispatch(setUserSuccess({ 
             ...session.user, 
