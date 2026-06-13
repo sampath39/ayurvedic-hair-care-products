@@ -35,7 +35,8 @@ const CheckoutPage = () => {
     // Check for mock products which cause UUID crashes
     const hasMockProducts = cartItems.some(item => String(item.id).length < 10);
     if (hasMockProducts) {
-      setModalState({ isOpen: true, type: 'error', message: 'Your cart contains demo products. Please clear your cart and add real products from the database.' });
+      dispatch(clearCart());
+      setModalState({ isOpen: true, type: 'error', message: 'We detected outdated products in your cart and cleared them automatically for your security. Please add the new products to continue!' });
       return;
     }
 
