@@ -67,8 +67,10 @@ const OrdersView = ({ orders, isLoading, handleUpdateOrderStatus, handleSendOtp,
                   </td>
                   <td className="py-4">
                     <div className="font-medium text-gray-800 dark:text-white">{order.profiles?.full_name || 'Anonymous'}</div>
-                    <div className="text-xs text-gray-500">{order.profiles?.mobile || 'No Mobile'}</div>
-                    <div className="text-xs text-gray-400 truncate max-w-[150px]" title={JSON.stringify(order.shipping_address)}>
+                    <div className="text-xs font-bold text-ayurveda-green bg-green-50 dark:bg-green-900/30 inline-block px-2 py-0.5 rounded mt-1">
+                      {order.shipping_address?.mobile || order.profiles?.mobile || 'No Mobile'}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1 truncate max-w-[150px]" title={JSON.stringify(order.shipping_address)}>
                       {order.shipping_address?.address || 'Address'}
                     </div>
                   </td>

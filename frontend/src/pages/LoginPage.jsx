@@ -14,13 +14,77 @@ const LoginPage = () => {
   const [mobile, setMobile] = useState('');
   const [address, setAddress] = useState('');
   
+  // OTP Fields
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [isMobileVerified, setIsMobileVerified] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const handleSendOtp = async () => {
+    if (mobile.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
+      
+      setOtpSent(true);
+      // For testing purposes, alert the simulated OTP
+      alert(`[SIMULATED SMS] Your AyuRoots verification code is: ${data.simulated_otp}`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      setError('Please enter the OTP.');
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, otp })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid OTP');
+      
+      setIsMobileVerified(true);
+      alert('Mobile number verified successfully!');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleAuth = async (e) => {
     e.preventDefault();
+    if (!isLogin && !isMobileVerified) {
+      setError('You must verify your mobile number before signing up.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -146,14 +210,56 @@ const LoginPage = () => {
                   placeholder="John Doe"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-cream mb-1 ml-1">Mobile Number</label>
-                <input 
-                  type="tel" required value={mobile} onChange={(e) => setMobile(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
-                  placeholder="+91 9876543210"
-                />
+                <div className="flex gap-2">
+                  <input 
+                    type="tel" required value={mobile} onChange={(e) => { setMobile(e.target.value); setIsMobileVerified(false); setOtpSent(false); }}
+                    disabled={isMobileVerified}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
+                    placeholder="+91 9876543210"
+                  />
+                  {!isMobileVerified && (
+                    <button 
+                      type="button" 
+                      onClick={handleSendOtp}
+                      disabled={otpLoading || mobile.length < 10}
+                      className="bg-gold text-ayurveda-green font-bold px-4 rounded-xl hover:bg-cream transition-colors disabled:opacity-70 whitespace-nowrap"
+                    >
+                      {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send OTP')}
+                    </button>
+                  )}
+                  {isMobileVerified && (
+                    <div className="bg-green-500/20 text-green-300 font-bold px-4 rounded-xl flex items-center border border-green-500/50">
+                      ✓ Verified
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {otpSent && !isMobileVerified && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                  <label className="block text-sm font-medium text-cream mb-1 ml-1">Enter OTP</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-gold tracking-widest text-center text-lg"
+                      placeholder="• • • • • •"
+                      maxLength={6}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleVerifyOtp}
+                      disabled={otpLoading || otp.length < 6}
+                      className="bg-ayurveda-green text-white font-bold px-4 rounded-xl hover:bg-herbal-green transition-colors disabled:opacity-70"
+                    >
+                      Verify
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-cream mb-1 ml-1">Full Address</label>
                 <textarea 
@@ -183,8 +289,8 @@ const LoginPage = () => {
           </div>
 
           <button 
-            type="submit" disabled={loading}
-            className="w-full bg-gold hover:bg-cream text-ayurveda-green hover:text-earthy-brown font-bold text-lg py-3.5 rounded-full shadow-lg transition-all duration-300 disabled:opacity-70 mt-4"
+            type="submit" disabled={loading || (!isLogin && !isMobileVerified)}
+            className="w-full bg-gold hover:bg-cream text-ayurveda-green hover:text-earthy-brown font-bold text-lg py-3.5 rounded-full shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           >
             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
           </button>

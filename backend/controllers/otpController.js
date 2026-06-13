@@ -18,7 +18,8 @@ export const sendOtp = async (req, res) => {
       .single();
 
     if (error) throw error;
-    res.json({ message: 'OTP sent successfully', id: data.id });
+    // Return OTP in response only for testing since there is no real SMS gateway
+    res.json({ message: 'OTP sent successfully', id: data.id, simulated_otp: otp });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
