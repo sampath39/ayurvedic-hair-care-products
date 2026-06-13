@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom';
 import { ShoppingCart, User, Search, Menu } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const totalQuantity = useSelector((state) => state.cart.totalQuantity);
+  const [isBlinking, setIsBlinking] = useState(false);
+
+  useEffect(() => {
+    if (totalQuantity > 0) {
+      setIsBlinking(true);
+      const timer = setTimeout(() => setIsBlinking(false), 1500); // blink for 1.5s
+      return () => clearTimeout(timer);
+    }
+  }, [totalQuantity]);
 
   return (
     <nav className="fixed w-full z-50 top-0 left-0 bg-cream/95 backdrop-blur-md shadow-sm border-b border-herbal-green/20 py-4 px-6 md:px-12 flex justify-between items-center transition-all duration-300">
@@ -29,10 +39,17 @@ const Navbar = () => {
         <Link to="/profile" className="text-ayurveda-green hover:text-gold transition-colors">
           <User size={22} />
         </Link>
-        <Link to="/cart" className="relative text-ayurveda-green hover:text-gold transition-colors">
+        <Link 
+          to="/cart" 
+          className={`relative transition-all duration-300 p-2 rounded-full ${
+            isBlinking 
+              ? 'text-gold bg-gold/20 animate-pulse ring-4 ring-gold/40 scale-110 shadow-lg' 
+              : 'text-ayurveda-green hover:text-gold hover:bg-gold/10'
+          }`}
+        >
           <ShoppingCart size={22} />
           {totalQuantity > 0 && (
-            <span className="absolute -top-2 -right-2 bg-gold text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+            <span className="absolute -top-1 -right-1 bg-gold text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
               {totalQuantity}
             </span>
           )}
