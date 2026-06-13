@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../config/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import AdminSidebar from '../../components/admin/AdminSidebar';
-import DashboardOverview from '../../components/admin/DashboardOverview';
-import AnalyticsView from '../../components/admin/AnalyticsView';
-import OrdersView from '../../components/admin/OrdersView';
-import ProductsView from '../../components/admin/ProductsView';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import DashboardOverview from '../components/admin/DashboardOverview';
+import AnalyticsView from '../components/admin/AnalyticsView';
+import OrdersView from '../components/admin/OrdersView';
+import ProductsView from '../components/admin/ProductsView';
 
 const AdminDashboard = () => {
   const { currentUser } = useSelector(state => state.user);
