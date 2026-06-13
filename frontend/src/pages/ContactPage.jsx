@@ -1,6 +1,39 @@
+import { useState } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({
+    name: '', email: '', subject: 'General Inquiry', message: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    try {
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (res.ok) {
+        toast.success('Message sent successfully!');
+        setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      toast.error('Failed to send message. Please try again later.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-cream pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16">
@@ -19,7 +52,7 @@ const ContactPage = () => {
               </div>
               <div>
                 <h3 className="font-serif text-xl text-ayurveda-green mb-1">Email Us</h3>
-                <p className="text-earthy-brown opacity-80">smapath777yt@gmail.com</p>
+                <p className="text-earthy-brown opacity-80">sampath777yt@gmail.com</p>
                 <p className="text-sm text-earthy-brown opacity-60 mt-1">We aim to respond within 24 hours.</p>
               </div>
             </div>
@@ -54,20 +87,26 @@ const ContactPage = () => {
         {/* Contact Form */}
         <div className="bg-white/60 backdrop-blur-md p-10 rounded-3xl border border-herbal-green/20 shadow-xl">
           <h2 className="text-2xl font-serif text-ayurveda-green mb-6">Send us a Message</h2>
-          <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Message sent successfully!"); }}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-ayurveda-green mb-2">Full Name</label>
-              <input type="text" required className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="Jane Doe" />
+              <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="Jane Doe" />
             </div>
             <div>
               <label className="block text-sm font-medium text-ayurveda-green mb-2">Email Address</label>
-              <input type="email" required className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="jane@example.com" />
+              <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="jane@example.com" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ayurveda-green mb-2">Subject</label>
+              <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="Product Inquiry" />
             </div>
             <div>
               <label className="block text-sm font-medium text-ayurveda-green mb-2">Message</label>
-              <textarea required rows="5" className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="How can we help you?"></textarea>
+              <textarea required rows="5" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} className="w-full bg-white border border-herbal-green/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gold" placeholder="How can we help you?"></textarea>
             </div>
-            <button type="submit" className="w-full btn-primary py-4 text-lg">Send Message</button>
+            <button type="submit" disabled={loading} className="w-full btn-primary py-4 text-lg disabled:opacity-70">
+              {loading ? 'Sending...' : 'Send Message'}
+            </button>
           </form>
         </div>
 

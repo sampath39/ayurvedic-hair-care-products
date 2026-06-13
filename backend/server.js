@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import deliveryRoutes from './routes/deliveryRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Start Server
 app.listen(PORT, () => {

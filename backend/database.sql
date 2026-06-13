@@ -146,3 +146,15 @@ CREATE POLICY "Users can view own delivery tracking" ON public.delivery_tracking
 );
 CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can update own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+
+-- 12. Contact Messages Table
+CREATE TABLE public.contact_messages (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name text NOT NULL,
+    email text NOT NULL,
+    subject text NOT NULL,
+    message text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Note: No RLS required if we want to allow public unauthenticated inserts via backend or if the backend uses Service Role
